@@ -1,7 +1,9 @@
+#   change to a user that has privileges
 sudo su postgres
+#   enter psql command line
 psql
 
-#   change password for postgress with the following command, enter password twice on prompt
+#   if necessary, change password for postgres with the following command, enter password twice on prompt
 \password
 
 CREATE DATABASE testdb;
