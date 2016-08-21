@@ -1,5 +1,7 @@
-# Postgres
 
+This example is based on:
+ http://alvinalexander.com/blog/post/jdbc/sample-java-jdbc-program-connect-database
+ 
 change to a user that has privileges
 #sudo su postgres
 enter psql command line
