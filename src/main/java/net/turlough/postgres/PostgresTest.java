@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.sql.*;
-import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by turlough on 21/08/16.
@@ -16,40 +16,38 @@ public class PostgresTest {
             .setPrettyPrinting()
             .create();
 
+    public static void main(String[] args) {
+        new PostgresTest().test();
+    }
     class Blog {
         public int id;
         public String subject;
         public String permalink;
     }
 
-    public static void main(String[] args) {
-        new PostgresTest();
+
+    public void test(){
+
+        //create the connection
+        Connection conn = connect();
+
+        //insert rows with random data
+        insertMockData(conn);
+
+        // get the data
+        List<Blog> blogs = fromDb(conn);
+
+        // print the results
+        System.out.println(gson.toJson(blogs));
+
     }
 
-    public PostgresTest() {
-        Connection conn = null;
-        LinkedList listOfBlogs = new LinkedList();
-
-        // connect to the database
-        conn = connectToDatabaseOrDie();
+    private void insertMockData(Connection conn) {
         String subject = "subject " + System.currentTimeMillis();
         String permalink = "link " + System.currentTimeMillis();
         insert(conn, subject, permalink);
-
-        // get the data
-        populateListOfTopics(conn, listOfBlogs);
-
-        // print the results
-        printTopics(listOfBlogs);
     }
 
-    private void printTopics(LinkedList listOfBlogs) {
-        Iterator it = listOfBlogs.iterator();
-        while (it.hasNext()) {
-            Blog blog = (Blog) it.next();
-            System.out.println(gson.toJson(blog));
-        }
-    }
 
     private void insert(Connection conn, String subject, String permalink){
         try {
@@ -67,7 +65,8 @@ public class PostgresTest {
         }
     }
 
-    private void populateListOfTopics(Connection conn, LinkedList listOfBlogs) {
+    private List<Blog> fromDb(Connection conn) {
+        List<Blog> list = new LinkedList<>();
         try {
             Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery("SELECT id, subject, permalink FROM blog ORDER BY id");
@@ -76,7 +75,7 @@ public class PostgresTest {
                 blog.id = rs.getInt("id");
                 blog.subject = rs.getString("subject");
                 blog.permalink = rs.getString("permalink");
-                listOfBlogs.add(blog);
+                list.add(blog);
             }
             rs.close();
             st.close();
@@ -84,9 +83,10 @@ public class PostgresTest {
             System.err.println("Threw a SQLException in select statement.");
             System.err.println(se.getMessage());
         }
+        return list;
     }
 
-    private Connection connectToDatabaseOrDie() {
+    private Connection connect() {
         Connection conn = null;
         try {
             Class.forName("org.postgresql.Driver");
